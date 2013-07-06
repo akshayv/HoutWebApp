@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>View Meetups</title>
+    <script src="js/jquery1.10.js"></script>
+    <link href="css/bootstrap-responsive.min.css" rel="stylesheet">
+    <link href="css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            padding-top: 40px;
+            padding-bottom: 40px;
+            background-color: #f5f5f5;
+        }
+    </style>
+    <script>
+
+        function getTimeStampForRestApi(date) {
+            return encodeURIComponent(date.getFullYear() + "-" + (date.getUTCMonth() + 1) + "-" + date.getUTCDate() + " " + date.getUTCHours() + ":" + date.getUTCMinutes() + ":" + date.getUTCSeconds() + " GMT");
+        }
+
+        function retrieveMeetups() {
+        var toDate = new Date();
+        var fromDate = new Date();
+        fromDate.setDate(fromDate.getDate()-5);
+        var url = 'Communication?methodName=get_meetups&fromDate='+getTimeStampForRestApi(fromDate)+'&toDate='+
+                getTimeStampForRestApi(toDate);
+        $.getJSON(url, function(data){
+            document.getElementById('loadingMessage').style.display='none';
+            var meetupResponse = data.meetups;
+            tableCreate(meetupResponse);
+        });
+    }
+
+        function getCellContent(meetup) {
+            var div = document.createElement('div');
+            var descSpan = document.createElement('div');
+            var innerDiv = document.createElement('span');
+            innerDiv.innerHTML = meetup.description;
+            innerDiv.style.fontWeight='bold';
+            descSpan.appendChild(document.createTextNode('Description: '));
+            descSpan.appendChild(innerDiv);
+            div.appendChild(descSpan);
+            var createdSpan = document.createElement('div');
+            innerDiv = document.createElement('span');
+            innerDiv.innerHTML = new Date(meetup.createdDate);
+            innerDiv.style.fontWeight='bold';
+            createdSpan.appendChild(document.createTextNode('Created: '));
+            createdSpan.appendChild(innerDiv);
+            div.appendChild(createdSpan);
+            if(meetup.finalizedLocation.address != null) {
+                var finalizedLocation = document.createElement('div');
+                innerDiv = document.createElement('span');
+                innerDiv.innerHTML = meetup.finalizedLocation.address;
+                innerDiv.style.fontWeight='bold';
+                finalizedLocation.appendChild(document.createTextNode('Finalized Location: '));
+                finalizedLocation.appendChild(innerDiv);
+                div.appendChild(finalizedLocation);
+                var finalizedDate = document.createElement('div');
+                innerDiv = document.createElement('span');
+                innerDiv.innerHTML = new Date(meetup.finalizedDate);
+                innerDiv.style.fontWeight='bold';
+                finalizedDate.appendChild(document.createTextNode('Finalized Date: '));
+                finalizedDate.appendChild(innerDiv);
+                div.appendChild(finalizedDate);
+            }
+
+            div.appendChild(document.createElement('br'));
+            var container = document.createElement('div');
+            var suggCheckbox = document.createElement('input');
+            suggCheckbox.type = "checkbox";
+            suggCheckbox.checked = meetup.suggestionsAllowed;
+            suggCheckbox.disabled = 'disabled';
+
+            var suggLabel = document.createElement('label');
+            suggLabel.style.display='inline';
+            suggLabel.appendChild(document.createTextNode('Suggestions'));
+
+            container.appendChild(suggCheckbox);
+            container.appendChild(suggLabel);
+            div.appendChild(container);
+
+            container = document.createElement('div');
+            var fbCheckbox = document.createElement('input');
+            fbCheckbox.type = "checkbox";
+            fbCheckbox.checked =meetup.facebookSharing;
+            fbCheckbox.disabled = 'disabled';
+
+            var fbLabel = document.createElement('label');
+            fbLabel.style.display='inline';
+            fbLabel.appendChild(document.createTextNode('Facebook'));
+
+            container.appendChild(fbCheckbox);
+            container.appendChild(fbLabel);
+            div.appendChild(container);
+
+            container = document.createElement('div');
+            var twitterCheckbox = document.createElement('input');
+            twitterCheckbox.type = "checkbox";
+            twitterCheckbox.checked = meetup.twitterSharing;
+            twitterCheckbox.disabled = 'disabled';
+
+            var twitterLabel = document.createElement('label');
+            twitterLabel.style.display='inline';
+            twitterLabel.appendChild(document.createTextNode('Twitter'));
+
+            container.appendChild(twitterCheckbox);
+            container.appendChild(twitterLabel);
+            div.appendChild(container);
+
+            return div;
+        }
+        function tableCreate(meetups) {
+            var body = document.getElementsByTagName("body")[0];
+
+            var outerDiv = document.createElement('div');
+            var img = document.createElement('img');
+            img.setAttribute('src', 'img/hout.png');
+            img.setAttribute("class", "img-rounded");
+            img.style.display='block';
+            img.style.margin='0 auto';
+            img.style.height='100px';
+            var h2=document.createElement('h2');
+            h2.setAttribute('class', 'form-signin-heading');
+            h2.innerHTML='Meetups!';
+            h2.style.textAlign='center';
+            outerDiv.appendChild(img);
+            outerDiv.appendChild(h2);
+            var tbl = document.createElement("table");
+            tbl.setAttribute("class", "table table-striped table-hover table-bordered");
+            tbl.style.width='40%';
+            tbl.style.position='absolute';
+            tbl.style.left='32%';
+
+            var tblBody = document.createElement("tbody");
+
+            for (var j = meetups.length-1; j >=0 ; j--) {
+                var meetup = meetups[j];
+                var row = document.createElement("tr");
+                var cell = document.createElement("td");
+                var cellContent = getCellContent(meetup);
+                cell.appendChild(cellContent);
+                row.appendChild(cell);
+
+                tblBody.appendChild(row);
+            }
+
+        tbl.appendChild(tblBody);
+        tbl.style.paddingBottom='30px';
+        outerDiv.appendChild(tbl);
+        var button = document.createElement('button');
+        button.setAttribute('class', "btn btn-large btn-primary");
+        button.setAttribute('type', 'submit');
+        button.style.display='block';
+        button.style.display.margin='0 auto';
+        button.innerHTML = 'Create Meetup';
+        button.setAttribute('onclick', "window.location='index.jsp'");
+        row = document.createElement("tr");
+        cell = document.createElement("td");
+        cell.setAttribute('colspan', '2');
+        cell.appendChild(button);
+        row.appendChild(cell);
+        tbl.appendChild(row);
+        body.appendChild(outerDiv);
+        tbl.setAttribute("border", "2");
+   }
+    </script>
+</head>
+<body onload="retrieveMeetups()">
+<h1 align="center" id='loadingMessage'> Loading Your Meetups!</h1>
+</body>
+</html>
